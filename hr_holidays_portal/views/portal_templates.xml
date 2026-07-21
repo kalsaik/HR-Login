@@ -7,27 +7,15 @@
               inherit_id="portal.portal_my_home">
         <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
             <div class="mb-5">
-                <p class="mb-3"
-                   style="font-size:0.7rem;font-weight:700;text-transform:uppercase;
-                          letter-spacing:0.1em;color:#94a3b8;">
-                    HR Self-Service
-                </p>
+                <p class="hr-section-label">HR Self-Service</p>
                 <div class="row g-3">
                     <div class="col-4 col-sm-3 col-md-2">
                         <a href="/my/allocations" class="text-decoration-none d-block h-100">
-                            <div class="h-100 d-flex flex-column align-items-center
-                                        justify-content-center py-3 px-2 bg-white"
-                                 style="border-radius:16px;
-                                        box-shadow:0 2px 10px rgba(0,0,0,0.07);">
-                                <div class="d-flex align-items-center justify-content-center mb-2"
-                                     style="width:52px;height:52px;border-radius:14px;
-                                            background:#EEF2FF;">
-                                    <i class="fa fa-calendar"
-                                       style="font-size:22px;color:#4F7EF8;"></i>
+                            <div class="hr-app-card">
+                                <div class="hr-app-icon-bg">
+                                    <i class="fa fa-calendar"/>
                                 </div>
-                                <span style="font-size:0.8rem;font-weight:600;color:#374151;">
-                                    Leave
-                                </span>
+                                <span class="hr-app-label">Leave</span>
                             </div>
                         </a>
                     </div>
@@ -36,144 +24,9 @@
         </xpath>
     </template>
 
-    <!-- ===== Shared styles (injected once via a sub-template) ===== -->
-    <template id="hr_portal_styles" name="HR Portal Shared Styles">
-        <style>
-            .hr-page { max-width: 520px; margin: 0 auto; }
-
-            /* Greeting banner */
-            .hr-banner {
-                background: linear-gradient(135deg, #1e3a5f 0%, #2d5986 100%);
-                border-radius: 18px; color: #fff;
-                padding: 1.4rem 1.5rem 1.5rem; margin-bottom: 1.5rem;
-            }
-            .hr-banner-avatar {
-                width: 44px; height: 44px; border-radius: 50%;
-                background: rgba(255,255,255,.2);
-                border: 2px solid rgba(255,255,255,.4);
-                display: flex; align-items: center; justify-content: center;
-                font-size: 1rem; font-weight: 700; color: #fff; flex-shrink: 0;
-            }
-
-            /* White card */
-            .hr-card {
-                background: #fff; border-radius: 16px;
-                box-shadow: 0 2px 14px rgba(0,0,0,.07);
-                padding: 1.25rem; margin-bottom: 1rem;
-            }
-
-            /* Section header row */
-            .hr-section-hd {
-                display: flex; justify-content: space-between;
-                align-items: center; margin-bottom: 0.75rem;
-            }
-            .hr-section-hd-title {
-                font-size: 0.95rem; font-weight: 700; color: #1e293b; margin: 0;
-            }
-            .hr-section-hd-sub {
-                font-size: 0.78rem; color: #4F7EF8; font-weight: 500;
-                text-decoration: none;
-            }
-            .hr-section-hd-sub:hover { text-decoration: underline; color: #3a5fcc; }
-
-            /* Allocation block */
-            .hr-alloc-block {
-                background: #f8fafc; border: 1px solid #e2e8f0;
-                border-radius: 14px; padding: 1rem 0.6rem 0.9rem;
-                text-align: center; height: 100%;
-            }
-            .hr-alloc-name {
-                font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-                letter-spacing: .05em; color: #64748b; margin-bottom: 0.55rem;
-                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            }
-            .hr-alloc-days  { font-size: 2.4rem; font-weight: 800; line-height: 1; color: #1e293b; }
-            .hr-alloc-unit  { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; margin-bottom: 0.55rem; }
-            .hr-alloc-sub   { font-size: 0.67rem; color: #94a3b8; white-space: nowrap; }
-            .hr-alloc-sub .p { color: #f59e0b; font-weight: 700; }
-            .hr-alloc-sub .u { color: #ef4444; font-weight: 700; }
-            .hr-alloc-sep   { margin: 0 3px; }
-
-            /* Request Leave button */
-            .hr-btn-request {
-                display: block; background: #1e3a5f; color: #fff !important;
-                text-align: center; text-decoration: none !important;
-                font-size: 1rem; font-weight: 700; letter-spacing: .03em;
-                border-radius: 14px; padding: 0.95rem 1rem;
-                margin-bottom: 1.5rem; transition: background .15s;
-            }
-            .hr-btn-request:hover { background: #2d5986; }
-
-            /* Recent request rows */
-            .hr-leave-row {
-                display: flex; justify-content: space-between;
-                align-items: center; padding: 0.8rem 0;
-                border-bottom: 1px solid #f1f5f9;
-            }
-            .hr-leave-row:last-child  { border-bottom: none; padding-bottom: 0; }
-            .hr-leave-row:first-child { padding-top: 0; }
-            .hr-leave-type-name { font-size: 0.88rem; font-weight: 600; color: #1e293b; }
-            .hr-leave-meta      { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
-
-            /* Status badges */
-            .hr-badge          { font-size: 0.7rem; font-weight: 700; border-radius: 20px; padding: 3px 11px; white-space: nowrap; }
-            .hr-badge-approved { background: #D1FAE5; color: #065F46; }
-            .hr-badge-pending  { background: #FEF3C7; color: #92400E; }
-            .hr-badge-refused  { background: #FEE2E2; color: #991B1B; }
-
-            /* Success / error alerts */
-            .hr-alert {
-                border-radius: 12px; padding: 0.9rem 1rem;
-                margin-bottom: 1rem; font-size: 0.88rem; font-weight: 500;
-                display: flex; align-items: center; gap: 0.6rem;
-            }
-            .hr-alert-success { background: #D1FAE5; color: #065F46; }
-            .hr-alert-error   { background: #FEE2E2; color: #991B1B; }
-
-            /* Empty states */
-            .hr-empty { text-align: center; padding: 2.5rem 1rem; }
-            .hr-empty i { font-size: 2.8rem; color: #cbd5e1; display: block; margin-bottom: 0.8rem; }
-            .hr-empty-title { font-weight: 700; font-size: 0.95rem; color: #1e293b; margin-bottom: 0.3rem; }
-            .hr-empty-sub   { font-size: 0.8rem; color: #94a3b8; margin: 0; }
-
-            /* ── Form styles ─────────────────────────────────────────── */
-            .hr-form-group { margin-bottom: 1.2rem; }
-            .hr-form-label {
-                display: block; font-size: 0.68rem; font-weight: 700;
-                text-transform: uppercase; letter-spacing: .07em;
-                color: #64748b; margin-bottom: 0.4rem;
-            }
-            .hr-form-control {
-                width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px;
-                padding: 0.7rem 0.9rem; font-size: 0.9rem; color: #1e293b;
-                background: #f8fafc; outline: none;
-                transition: border-color .15s, box-shadow .15s;
-                -webkit-appearance: none;
-            }
-            .hr-form-control:focus {
-                border-color: #4F7EF8;
-                box-shadow: 0 0 0 3px rgba(79,126,248,.12);
-                background: #fff;
-            }
-            .hr-form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.9rem center; padding-right: 2.2rem; cursor: pointer; }
-            .hr-form-hint { font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem; }
-            .hr-btn-cancel {
-                display: block; text-align: center; font-size: 0.88rem;
-                color: #64748b; text-decoration: none; margin-top: 0.75rem;
-                padding: 0.5rem;
-            }
-            .hr-btn-cancel:hover { color: #1e293b; text-decoration: underline; }
-            .hr-type-remaining {
-                font-size: 0.72rem; color: #94a3b8; font-weight: 400;
-            }
-        </style>
-    </template>
-
     <!-- ===== /my/allocations — main Leave page ===== -->
     <template id="portal_my_allocations" name="My Leave Allocations">
         <t t-call="portal.portal_layout">
-            <t t-call="hr_holidays_portal.hr_portal_styles"/>
-
             <div class="hr-page">
 
                 <!-- Success banner -->
@@ -188,10 +41,8 @@
                 <div class="hr-banner">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="fw-bold mb-1" style="font-size:1.35rem;">
-                                Hi, <t t-esc="employee.name.split()[0] if employee else 'there'"/>!
-                            </h3>
-                            <p class="mb-0" style="opacity:.7;font-size:.82rem;">
+                            <h3>Hi, <t t-esc="employee.name.split()[0] if employee else 'there'"/>!</h3>
+                            <p class="hr-banner-sub">
                                 <t t-if="employee and employee.job_title">
                                     <t t-esc="employee.job_title"/>
                                 </t>
@@ -302,8 +153,7 @@
                                         <span class="hr-badge hr-badge-refused">Refused</span>
                                     </t>
                                     <t t-else="">
-                                        <span class="hr-badge"
-                                              style="background:#f1f5f9;color:#475569;">Draft</span>
+                                        <span class="hr-badge hr-badge-draft">Draft</span>
                                     </t>
                                 </div>
                             </div>
@@ -318,22 +168,16 @@
     <!-- ===== /my/leaves/new — Leave Request Form ===== -->
     <template id="portal_leave_new" name="New Leave Request">
         <t t-call="portal.portal_layout">
-            <t t-call="hr_holidays_portal.hr_portal_styles"/>
-
             <div class="hr-page">
 
                 <!-- Banner with back link -->
                 <div class="hr-banner">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <a href="/my/allocations"
-                               style="color:rgba(255,255,255,.6);font-size:.8rem;
-                                      text-decoration:none;display:block;margin-bottom:.4rem;">
+                            <a href="/my/allocations" class="hr-banner-back">
                                 <i class="fa fa-arrow-left me-1"/>Back to Leave
                             </a>
-                            <h3 class="fw-bold mb-0" style="font-size:1.25rem;">
-                                New Leave Request
-                            </h3>
+                            <h3 class="mb-0">New Leave Request</h3>
                         </div>
                         <t t-if="employee">
                             <div class="hr-banner-avatar">
@@ -383,7 +227,7 @@
                             <!-- Leave Type -->
                             <div class="hr-form-group">
                                 <label class="hr-form-label" for="leave_type_id">
-                                    Leave Type <span style="color:#ef4444;">*</span>
+                                    Leave Type <span class="required">*</span>
                                 </label>
                                 <select name="leave_type_id" id="leave_type_id"
                                         class="hr-form-control hr-form-select"
@@ -404,7 +248,7 @@
                                 <div class="col-6">
                                     <div class="hr-form-group mb-0">
                                         <label class="hr-form-label" for="date_from">
-                                            From <span style="color:#ef4444;">*</span>
+                                            From <span class="required">*</span>
                                         </label>
                                         <input type="date" name="date_from" id="date_from"
                                                class="hr-form-control"
@@ -415,7 +259,7 @@
                                 <div class="col-6">
                                     <div class="hr-form-group mb-0">
                                         <label class="hr-form-label" for="date_to">
-                                            To <span style="color:#ef4444;">*</span>
+                                            To <span class="required">*</span>
                                         </label>
                                         <input type="date" name="date_to" id="date_to"
                                                class="hr-form-control"
@@ -428,11 +272,7 @@
                             <!-- Reason -->
                             <div class="hr-form-group">
                                 <label class="hr-form-label" for="reason">
-                                    Reason
-                                    <span style="color:#94a3b8;font-weight:400;
-                                                 text-transform:none;letter-spacing:0;">
-                                        (optional)
-                                    </span>
+                                    Reason <span class="optional">(optional)</span>
                                 </label>
                                 <textarea name="reason" id="reason" rows="3"
                                           class="hr-form-control"
@@ -441,30 +281,20 @@
 
                             <!-- Medical certificate (shown by JS when needed) -->
                             <div id="cert-section" style="display:none;">
-                                <div style="border-top:1px solid #f1f5f9;
-                                            margin: 0 -1.25rem 1.2rem;padding-top:1.2rem;
-                                            padding-left:1.25rem;padding-right:1.25rem;">
+                                <div class="hr-cert-divider">
                                     <label class="hr-form-label" for="medical_cert">
                                         Medical Certificate
-                                        <span id="cert-required-star"
-                                              style="color:#ef4444;">*</span>
+                                        <span id="cert-required-star" class="required">*</span>
                                     </label>
 
-                                    <!-- Drop zone -->
                                     <label for="medical_cert" id="cert-dropzone"
-                                           style="display:block;border:2px dashed #e2e8f0;
-                                                  border-radius:12px;padding:1.5rem;
-                                                  text-align:center;cursor:pointer;
-                                                  background:#f8fafc;transition:border-color .15s;">
-                                        <i class="fa fa-file-medical fa-2x"
-                                           style="color:#cbd5e1;font-size:2rem;display:block;
-                                                  margin-bottom:.5rem;"></i>
-                                        <span id="cert-label-text"
-                                              style="font-size:.85rem;color:#64748b;">
+                                           class="hr-cert-dropzone">
+                                        <i class="fa fa-file-medical hr-cert-icon"/>
+                                        <span id="cert-label-text" class="hr-cert-label">
                                             Click to upload or drag &amp; drop
                                         </span>
                                         <br/>
-                                        <span style="font-size:.72rem;color:#94a3b8;">
+                                        <span class="hr-cert-hint">
                                             PDF, JPG or PNG · max 5 MB
                                         </span>
                                         <input type="file" name="medical_cert" id="medical_cert"
@@ -482,8 +312,7 @@
                             </div>
 
                             <!-- Submit -->
-                            <button type="submit" class="hr-btn-request mb-0"
-                                    style="border:none;cursor:pointer;width:100%;">
+                            <button type="submit" class="hr-btn-request mb-0">
                                 Submit Request
                             </button>
                         </form>
@@ -491,8 +320,7 @@
                         <a href="/my/allocations" class="hr-btn-cancel">Cancel</a>
                     </div>
 
-                    <p class="text-center mt-2"
-                       style="font-size:0.75rem;color:#94a3b8;">
+                    <p class="hr-form-note">
                         <i class="fa fa-info-circle me-1"/>
                         Your request will be sent to HR for approval.
                         You'll see its status in <strong>Recent Requests</strong>.
@@ -538,18 +366,15 @@
                 });
                 inTo.addEventListener('change', update);
 
-                // Show selected filename in drop zone
                 if (fileIn) {
                     fileIn.addEventListener('change', function () {
                         if (this.files.length) {
                             lblText.textContent = this.files[0].name;
-                            dropzone.style.borderColor = '#4F7EF8';
-                            dropzone.style.background  = '#EEF2FF';
+                            dropzone.classList.add('active');
                         }
                     });
                 }
 
-                // Run once on load (repopulate on error)
                 update();
             })();
             </script>
