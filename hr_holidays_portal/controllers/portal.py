@@ -45,7 +45,7 @@ class HrHolidaysPortal(CustomerPortal):
     # ── /my/allocations ──────────────────────────────────────────────────────
 
     @http.route('/my/allocations', type='http', auth='user', website=True)
-    def portal_my_allocations(self, success=None, **kwargs):
+    def portal_my_allocations(self, success=None, cancelled=None, **kwargs):
         env = request.env
         employee = env.user.employee_id
 
@@ -84,8 +84,32 @@ class HrHolidaysPortal(CustomerPortal):
             'pending_by_type': pending_by_type,
             'recent_leaves': recent_leaves,
             'success': bool(success),
+            'cancelled': bool(cancelled),
         })
         return request.render('hr_holidays_portal.portal_my_allocations', values)
+
+    # ── /my/leaves — full leave history ─────────────────────────────────────
+
+    @http.route('/my/leaves', type='http', auth='user', website=True)
+    def portal_my_leaves(self, **kwargs):
+        env = request.env
+        employee = env.user.employee_id
+        if not employee:
+            return request.redirect('/my/allocations')
+
+        employee = env['hr.employee'].sudo().browse(employee.id)
+        all_leaves = env['hr.leave'].sudo().search([
+            ('employee_id', '=', employee.id),
+            ('state', '!=', 'draft'),
+        ], order='date_from desc')
+
+        values = self._prepare_portal_layout_values()
+        values.update({
+            'employee': employee,
+            'all_leaves': all_leaves,
+            'page_name': 'leaves_all',
+        })
+        return request.render('hr_holidays_portal.portal_my_leaves', values)
 
     # ── /my/leaves/new  GET ──────────────────────────────────────────────────
 

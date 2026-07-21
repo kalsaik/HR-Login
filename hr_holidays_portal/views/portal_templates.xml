@@ -36,7 +36,7 @@
                         Your leave request has been submitted and is pending approval.
                     </div>
                 </t>
-                <t t-if="request.params.get('cancelled')">
+                <t t-if="cancelled">
                     <div class="hr-alert hr-alert-info">
                         <i class="fa fa-info-circle"/>
                         Your leave request has been cancelled.
@@ -69,7 +69,6 @@
                 <!-- Leave Balances -->
                 <div class="hr-section-hd">
                     <span class="hr-section-hd-title">Leave Balances</span>
-                    <span class="hr-section-hd-sub">Days remaining</span>
                 </div>
                 <div class="hr-card">
                     <t t-if="not employee or not allocations">
@@ -120,7 +119,7 @@
                 <!-- Recent Requests -->
                 <div class="hr-section-hd">
                     <span class="hr-section-hd-title">Recent Requests</span>
-                    <a href="#" class="hr-section-hd-sub">View all →</a>
+                    <a href="/my/leaves" class="hr-section-hd-sub">View all →</a>
                 </div>
                 <div class="hr-card">
                     <t t-if="not recent_leaves">
@@ -279,7 +278,9 @@
                                             <t t-esc="msg.date" t-options='{"widget":"date"}'/>
                                         </span>
                                     </div>
-                                    <div class="hr-message-body" t-out="msg.body"/>
+                                    <div class="hr-message-body">
+                                        <t t-out="msg.body"/>
+                                    </div>
                                 </div>
                             </div>
                         </t>
@@ -288,14 +289,38 @@
 
                 <!-- Cancel button -->
                 <t t-if="can_cancel">
-                    <form t-attf-action="/my/leaves/#{leave.id}/cancel" method="post">
+                    <form id="cancel-form"
+                          t-attf-action="/my/leaves/#{leave.id}/cancel" method="post">
                         <input type="hidden" name="csrf_token"
                                t-att-value="request.csrf_token()"/>
-                        <button type="submit" class="hr-btn-cancel-request"
-                                onclick="return confirm('Are you sure you want to cancel this leave request?')">
+                        <button type="button" class="hr-btn-cancel-request"
+                                onclick="document.getElementById('hr-cancel-modal').style.display='flex'">
                             <i class="fa fa-times me-1"/>Cancel This Request
                         </button>
                     </form>
+
+                    <!-- In-app cancel confirmation modal -->
+                    <div id="hr-cancel-modal" class="hr-modal-overlay" style="display:none;"
+                         onclick="if(event.target===this)this.style.display='none'">
+                        <div class="hr-modal">
+                            <div class="hr-modal-icon">⚠️</div>
+                            <h4 class="hr-modal-title">Cancel Leave Request?</h4>
+                            <p class="hr-modal-desc">
+                                Your <strong><t t-esc="leave.holiday_status_id.name"/></strong> request
+                                will be cancelled. This cannot be undone.
+                            </p>
+                            <div class="hr-modal-actions">
+                                <button type="button" class="hr-modal-btn-keep"
+                                        onclick="document.getElementById('hr-cancel-modal').style.display='none'">
+                                    Keep It
+                                </button>
+                                <button type="button" class="hr-modal-btn-confirm"
+                                        onclick="document.getElementById('cancel-form').submit()">
+                                    Yes, Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </t>
 
             </div>
@@ -587,6 +612,89 @@
                 updateCert();
             })();
             </script>
+        </t>
+    </template>
+
+
+    <!-- ===== /my/leaves — Full leave history ===== -->
+    <template id="portal_my_leaves" name="All Leave Requests">
+        <t t-call="portal.portal_layout">
+            <div class="hr-page">
+
+                <!-- Banner -->
+                <div class="hr-banner">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/my/allocations" class="hr-banner-back">
+                                <i class="fa fa-arrow-left me-1"/>Back to Leave
+                            </a>
+                            <h3 class="mb-0">Leave History</h3>
+                        </div>
+                        <div class="hr-banner-avatar">
+                            <t t-esc="employee.name[0:1].upper()"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New request button -->
+                <a href="/my/leaves/new" class="hr-btn-request">+ Request Leave</a>
+
+                <!-- Leave list -->
+                <t t-if="not all_leaves">
+                    <div class="hr-card">
+                        <div class="hr-empty">
+                            <i class="fa fa-inbox"/>
+                            <p class="hr-empty-title">No leave requests yet</p>
+                            <p class="hr-empty-sub">Your submitted requests will appear here.</p>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-if="all_leaves">
+                    <t t-set="current_year" t-value="0"/>
+                    <t t-foreach="all_leaves" t-as="leave">
+
+                        <!-- Year divider -->
+                        <t t-set="leave_year" t-value="leave.date_from.year"/>
+                        <t t-if="leave_year != current_year">
+                            <p class="hr-year-divider"><t t-esc="leave_year"/></p>
+                            <t t-set="current_year" t-value="leave_year"/>
+                        </t>
+
+                        <a t-attf-href="/my/leaves/#{leave.id}" class="hr-leave-row">
+                            <div class="flex-grow-1 me-3 overflow-hidden">
+                                <div class="hr-leave-type-name text-truncate">
+                                    <t t-esc="leave.holiday_status_id.name"/>
+                                </div>
+                                <div class="hr-leave-meta">
+                                    <t t-esc="leave.date_from" t-options='{"widget":"date"}'/>
+                                    <span class="mx-1">→</span>
+                                    <t t-esc="leave.date_to" t-options='{"widget":"date"}'/>
+                                    <span class="ms-1">
+                                        (<t t-esc="'%.0f' % leave.number_of_days"/>d)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 d-flex align-items-center gap-2">
+                                <t t-if="leave.state == 'validate'">
+                                    <span class="hr-badge hr-badge-approved">Approved</span>
+                                </t>
+                                <t t-elif="leave.state in ('confirm', 'validate1')">
+                                    <span class="hr-badge hr-badge-pending">Pending</span>
+                                </t>
+                                <t t-elif="leave.state == 'refuse'">
+                                    <span class="hr-badge hr-badge-refused">Refused</span>
+                                </t>
+                                <t t-else="">
+                                    <span class="hr-badge hr-badge-draft">Draft</span>
+                                </t>
+                                <i class="fa fa-chevron-right hr-row-arrow"/>
+                            </div>
+                        </a>
+                    </t>
+                </t>
+
+            </div>
         </t>
     </template>
 
