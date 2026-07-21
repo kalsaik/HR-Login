@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Default system parameters for hr_holidays_portal.
+        Admins can override these via Settings > Technical > Parameters > System Parameters.
+    -->
+
+    <!-- Name of the leave type that requires a medical certificate -->
+    <record id="param_sick_leave_name" model="ir.config_parameter">
+        <field name="key">hr_holidays_portal.sick_leave_name</field>
+        <field name="value">Sick Leave</field>
+    </record>
+
+    <!-- Number of consecutive calendar days after which a certificate is required -->
+    <record id="param_cert_day_threshold" model="ir.config_parameter">
+        <field name="key">hr_holidays_portal.cert_day_threshold</field>
+        <field name="value">3</field>
+    </record>
+
+    <!-- Maximum file upload size in bytes (default 5 MB) -->
+    <record id="param_max_upload_bytes" model="ir.config_parameter">
+        <field name="key">hr_holidays_portal.max_upload_bytes</field>
+        <field name="value">5242880</field>
+    </record>
+</odoo>
