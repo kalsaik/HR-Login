@@ -262,31 +262,6 @@
                     </div>
                 </t>
 
-                <!-- Activity / chatter summary -->
-                <t t-if="messages">
-                    <div class="hr-card">
-                        <p class="hr-detail-section-title">Activity</p>
-                        <t t-foreach="messages" t-as="msg">
-                            <div class="hr-message-row">
-                                <div class="hr-message-avatar">
-                                    <t t-esc="(msg.author_id.name or '?')[0:1].upper()"/>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="hr-message-author">
-                                        <t t-esc="msg.author_id.name or 'System'"/>
-                                        <span class="hr-message-date">
-                                            <t t-esc="msg.date" t-options='{"widget":"date"}'/>
-                                        </span>
-                                    </div>
-                                    <div class="hr-message-body">
-                                        <t t-out="msg.body"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </t>
-                    </div>
-                </t>
-
                 <!-- Cancel button -->
                 <t t-if="can_cancel">
                     <form id="cancel-form"

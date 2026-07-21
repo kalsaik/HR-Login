@@ -384,20 +384,11 @@ class HrHolidaysPortal(CustomerPortal):
             ('res_id', '=', leave.id),
         ])
 
-        # Chatter messages — show comments only, skip empty/system ones
-        messages = request.env['mail.message'].sudo().search([
-            ('res_id', '=', leave.id),
-            ('model', '=', 'hr.leave'),
-            ('message_type', 'in', ['comment', 'email']),
-            ('body', '!=', ''),
-        ], order='date asc')
-
         values = self._prepare_portal_layout_values()
         values.update({
             'leave': leave,
             'employee': employee,
             'attachments': attachments,
-            'messages': messages,
             'page_name': 'leave_detail',
             'can_cancel': leave.state in ('confirm', 'validate1'),
         })
