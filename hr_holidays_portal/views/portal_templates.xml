@@ -29,11 +29,17 @@
         <t t-call="portal.portal_layout">
             <div class="hr-page">
 
-                <!-- Success banner -->
+                <!-- Success / cancelled banners -->
                 <t t-if="success">
                     <div class="hr-alert hr-alert-success">
                         <i class="fa fa-check-circle"/>
                         Your leave request has been submitted and is pending approval.
+                    </div>
+                </t>
+                <t t-if="request.params.get('cancelled')">
+                    <div class="hr-alert hr-alert-info">
+                        <i class="fa fa-info-circle"/>
+                        Your leave request has been cancelled.
                     </div>
                 </t>
 
@@ -128,7 +134,7 @@
                     </t>
                     <t t-if="recent_leaves">
                         <t t-foreach="recent_leaves" t-as="leave">
-                            <div class="hr-leave-row">
+                            <a t-attf-href="/my/leaves/#{leave.id}" class="hr-leave-row">
                                 <div class="flex-grow-1 me-3 overflow-hidden">
                                     <div class="hr-leave-type-name text-truncate">
                                         <t t-esc="leave.holiday_status_id.name"/>
@@ -142,7 +148,7 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="flex-shrink-0">
+                                <div class="flex-shrink-0 d-flex align-items-center gap-2">
                                     <t t-if="leave.state == 'validate'">
                                         <span class="hr-badge hr-badge-approved">Approved</span>
                                     </t>
@@ -155,11 +161,142 @@
                                     <t t-else="">
                                         <span class="hr-badge hr-badge-draft">Draft</span>
                                     </t>
+                                    <i class="fa fa-chevron-right hr-row-arrow"/>
                                 </div>
-                            </div>
+                            </a>
                         </t>
                     </t>
                 </div>
+
+            </div>
+        </t>
+    </template>
+
+    <!-- ===== /my/leaves/<id> — Leave Detail ===== -->
+    <template id="portal_leave_detail" name="Leave Request Detail">
+        <t t-call="portal.portal_layout">
+            <div class="hr-page">
+
+                <!-- Banner -->
+                <div class="hr-banner">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/my/allocations" class="hr-banner-back">
+                                <i class="fa fa-arrow-left me-1"/>Back to Leave
+                            </a>
+                            <h3 class="mb-1">
+                                <t t-esc="leave.holiday_status_id.name"/>
+                            </h3>
+                            <div>
+                                <t t-if="leave.state == 'validate'">
+                                    <span class="hr-badge hr-badge-approved">Approved</span>
+                                </t>
+                                <t t-elif="leave.state in ('confirm', 'validate1')">
+                                    <span class="hr-badge hr-badge-pending">Pending Approval</span>
+                                </t>
+                                <t t-elif="leave.state == 'refuse'">
+                                    <span class="hr-badge hr-badge-refused">Refused / Cancelled</span>
+                                </t>
+                                <t t-else="">
+                                    <span class="hr-badge hr-badge-draft">Draft</span>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="hr-banner-avatar">
+                            <t t-esc="employee.name[0:1].upper()"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details card -->
+                <div class="hr-card">
+                    <p class="hr-detail-section-title">Request Details</p>
+
+                    <div class="hr-detail-row">
+                        <span class="hr-detail-label">From</span>
+                        <span class="hr-detail-value">
+                            <t t-esc="leave.date_from" t-options='{"widget":"date"}'/>
+                        </span>
+                    </div>
+                    <div class="hr-detail-row">
+                        <span class="hr-detail-label">To</span>
+                        <span class="hr-detail-value">
+                            <t t-esc="leave.date_to" t-options='{"widget":"date"}'/>
+                        </span>
+                    </div>
+                    <div class="hr-detail-row">
+                        <span class="hr-detail-label">Duration</span>
+                        <span class="hr-detail-value">
+                            <t t-esc="'%.0f' % leave.number_of_days"/> working day(s)
+                        </span>
+                    </div>
+                    <t t-if="leave.name">
+                        <div class="hr-detail-row">
+                            <span class="hr-detail-label">Reason</span>
+                            <span class="hr-detail-value">
+                                <t t-esc="leave.name"/>
+                            </span>
+                        </div>
+                    </t>
+                    <div class="hr-detail-row" style="border-bottom:none;">
+                        <span class="hr-detail-label">Submitted</span>
+                        <span class="hr-detail-value">
+                            <t t-esc="leave.create_date" t-options='{"widget":"date"}'/>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Attachments card -->
+                <t t-if="attachments">
+                    <div class="hr-card">
+                        <p class="hr-detail-section-title">Attachments</p>
+                        <t t-foreach="attachments" t-as="att">
+                            <a t-attf-href="/web/content/#{att.id}?download=true"
+                               class="hr-attachment-row" target="_blank">
+                                <i class="fa fa-file-o me-2"/>
+                                <span class="flex-grow-1 text-truncate">
+                                    <t t-esc="att.name"/>
+                                </span>
+                                <i class="fa fa-download ms-2"/>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Activity / chatter summary -->
+                <t t-if="messages">
+                    <div class="hr-card">
+                        <p class="hr-detail-section-title">Activity</p>
+                        <t t-foreach="messages" t-as="msg">
+                            <div class="hr-message-row">
+                                <div class="hr-message-avatar">
+                                    <t t-esc="(msg.author_id.name or '?')[0:1].upper()"/>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="hr-message-author">
+                                        <t t-esc="msg.author_id.name or 'System'"/>
+                                        <span class="hr-message-date">
+                                            <t t-esc="msg.date" t-options='{"widget":"date"}'/>
+                                        </span>
+                                    </div>
+                                    <div class="hr-message-body" t-out="msg.body"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Cancel button -->
+                <t t-if="can_cancel">
+                    <form t-attf-action="/my/leaves/#{leave.id}/cancel" method="post">
+                        <input type="hidden" name="csrf_token"
+                               t-att-value="request.csrf_token()"/>
+                        <button type="submit" class="hr-btn-cancel-request"
+                                onclick="return confirm('Are you sure you want to cancel this leave request?')">
+                            <i class="fa fa-times me-1"/>Cancel This Request
+                        </button>
+                    </form>
+                </t>
 
             </div>
         </t>
@@ -214,7 +351,6 @@
                 <!-- Request form -->
                 <t t-if="leave_types_data">
 
-                    <!-- Pass values to JS -->
                     <t t-set="sl_id_str"   t-value="str(sick_leave_id)"/>
                     <t t-set="cert_thresh" t-value="str(cert_threshold)"/>
 
@@ -237,16 +373,16 @@
                                         <option t-att-value="lt['id']"
                                                 t-att-selected="form_leave_type_id == lt['id']">
                                             <t t-esc="lt['name']"/>
-                                            (<t t-esc="'%.1f' % lt['remaining']"/> days remaining)
+                                            — <t t-esc="'%.1f' % lt['remaining']"/> days left
                                         </option>
                                     </t>
                                 </select>
                             </div>
 
-                            <!-- Date range -->
-                            <div class="row g-3 mb-4">
-                                <div class="col-6">
-                                    <div class="hr-form-group mb-0">
+                            <!-- Date range + day counter -->
+                            <div class="hr-form-group">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col">
                                         <label class="hr-form-label" for="date_from">
                                             From <span class="required">*</span>
                                         </label>
@@ -255,9 +391,7 @@
                                                t-att-value="form_date_from"
                                                required="required"/>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="hr-form-group mb-0">
+                                    <div class="col">
                                         <label class="hr-form-label" for="date_to">
                                             To <span class="required">*</span>
                                         </label>
@@ -266,6 +400,17 @@
                                                t-att-value="form_date_to"
                                                required="required"/>
                                     </div>
+                                    <!-- Day counter box -->
+                                    <div class="col-auto">
+                                        <div id="day-counter" class="hr-day-counter">
+                                            <div id="day-count-num" class="hr-day-counter-num">0</div>
+                                            <div class="hr-day-counter-label">days</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Holiday / weekend note -->
+                                <div id="date-note" class="hr-date-note" style="display:none;">
+                                    <span id="date-note-text"></span>
                                 </div>
                             </div>
 
@@ -279,14 +424,34 @@
                                           placeholder="Add a note for your manager…"></textarea>
                             </div>
 
+                            <!-- Covering Person -->
+                            <t t-if="colleagues">
+                                <div class="hr-form-group">
+                                    <label class="hr-form-label" for="covering_person_id">
+                                        Covering Person <span class="optional">(optional)</span>
+                                    </label>
+                                    <select name="covering_person_id" id="covering_person_id"
+                                            class="hr-form-control hr-form-select">
+                                        <option value="">— Select a colleague —</option>
+                                        <t t-foreach="colleagues" t-as="col">
+                                            <option t-att-value="col.id">
+                                                <t t-esc="col.name"/>
+                                                <t t-if="col.job_title"> — <t t-esc="col.job_title"/></t>
+                                            </option>
+                                        </t>
+                                    </select>
+                                    <p class="hr-form-hint">
+                                        The colleague covering your responsibilities while you're away.
+                                    </p>
+                                </div>
+                            </t>
+
                             <!-- Medical certificate (shown by JS when needed) -->
                             <div id="cert-section" style="display:none;">
                                 <div class="hr-cert-divider">
                                     <label class="hr-form-label" for="medical_cert">
-                                        Medical Certificate
-                                        <span id="cert-required-star" class="required">*</span>
+                                        Medical Certificate <span class="required">*</span>
                                     </label>
-
                                     <label for="medical_cert" id="cert-dropzone"
                                            class="hr-cert-dropzone">
                                         <i class="fa fa-file-medical hr-cert-icon"/>
@@ -294,19 +459,14 @@
                                             Click to upload or drag &amp; drop
                                         </span>
                                         <br/>
-                                        <span class="hr-cert-hint">
-                                            PDF, JPG or PNG · max 5 MB
-                                        </span>
+                                        <span class="hr-cert-hint">PDF, JPG or PNG · max 5 MB</span>
                                         <input type="file" name="medical_cert" id="medical_cert"
                                                accept=".pdf,.jpg,.jpeg,.png"
                                                style="display:none;"/>
                                     </label>
-
-                                    <p id="cert-hint" class="hr-form-hint mt-2">
+                                    <p class="hr-form-hint mt-2">
                                         <i class="fa fa-info-circle me-1"/>
-                                        Required for Sick Leave of
-                                        <t t-esc="cert_threshold"/>+ consecutive days.
-                                        The certificate will be attached to your request.
+                                        Required for <t t-esc="cert_threshold"/>+ consecutive days of Sick Leave.
                                     </p>
                                 </div>
                             </div>
@@ -333,6 +493,7 @@
             (function () {
                 var SICK_ID   = '<t t-esc="sl_id_str"/>';
                 var THRESHOLD = parseInt('<t t-esc="cert_thresh"/>');
+                var HOLIDAYS  = <t t-out="holiday_dates_json"/>;
 
                 var selType  = document.getElementById('leave_type_id');
                 var inFrom   = document.getElementById('date_from');
@@ -341,30 +502,77 @@
                 var fileIn   = document.getElementById('medical_cert');
                 var dropzone = document.getElementById('cert-dropzone');
                 var lblText  = document.getElementById('cert-label-text');
+                var countNum = document.getElementById('day-count-num');
+                var dateNote = document.getElementById('date-note');
+                var noteText = document.getElementById('date-note-text');
 
                 if (!selType) return;
 
-                function calendarDays() {
-                    if (!inFrom.value || !inTo.value) return 0;
-                    var ms = new Date(inTo.value) - new Date(inFrom.value);
-                    return Math.round(ms / 86400000) + 1;
+                /* ── helpers ── */
+                function dateRange() {
+                    if (!inFrom.value || !inTo.value) return [];
+                    var dates = [], cur = new Date(inFrom.value), end = new Date(inTo.value);
+                    while (cur &lt;= end) {
+                        dates.push(cur.toISOString().slice(0, 10));
+                        cur.setDate(cur.getDate() + 1);
+                    }
+                    return dates;
                 }
 
-                function update() {
+                /* ── day counter ── */
+                function updateCounter() {
+                    var range  = dateRange();
+                    if (!range.length) { countNum.textContent = '0'; dateNote.style.display = 'none'; return; }
+
+                    var wkends = range.filter(function(d) {
+                        var day = new Date(d).getUTCDay(); return day === 0 || day === 6;
+                    }).length;
+                    var holNames = range.filter(function(d) { return HOLIDAYS[d]; })
+                                       .map(function(d) { return HOLIDAYS[d]; });
+                    var workdays = range.length - wkends - range.filter(function(d) {
+                        var day = new Date(d).getUTCDay();
+                        return HOLIDAYS[d] &amp;&amp; day !== 0 &amp;&amp; day !== 6;
+                    }).length;
+
+                    countNum.textContent = workdays;
+
+                    var notes = [];
+                    if (wkends) notes.push(wkends + ' weekend day' + (wkends > 1 ? 's' : '') + ' excluded');
+                    if (holNames.length) {
+                        var names = holNames.slice(0, 2).join(', ') + (holNames.length > 2 ? ' +' + (holNames.length - 2) + ' more' : '');
+                        notes.push('public holiday: ' + names);
+                    }
+                    if (notes.length) {
+                        noteText.textContent = '📅 ' + notes.join(' · ');
+                        dateNote.style.display = '';
+                    } else {
+                        dateNote.style.display = 'none';
+                    }
+                }
+
+                /* ── cert section ── */
+                function updateCert() {
                     var isSick = selType.value === SICK_ID;
-                    var days   = calendarDays();
-                    var show   = isSick &amp;&amp; days >= THRESHOLD;
+                    var cal    = dateRange().length;
+                    var show   = isSick &amp;&amp; cal >= THRESHOLD;
                     certSec.style.display = show ? '' : 'none';
-                    fileIn.required = show;
+                    if (fileIn) fileIn.required = show;
                 }
 
-                selType.addEventListener('change', update);
+                /* ── events ── */
+                selType.addEventListener('change', updateCert);
+
                 inFrom.addEventListener('change', function () {
                     if (!inTo.value || inTo.value &lt; this.value) inTo.value = this.value;
                     inTo.min = this.value;
-                    update();
+                    updateCounter();
+                    updateCert();
                 });
-                inTo.addEventListener('change', update);
+
+                inTo.addEventListener('change', function () {
+                    updateCounter();
+                    updateCert();
+                });
 
                 if (fileIn) {
                     fileIn.addEventListener('change', function () {
@@ -375,7 +583,8 @@
                     });
                 }
 
-                update();
+                updateCounter();
+                updateCert();
             })();
             </script>
         </t>

@@ -295,3 +295,149 @@
 
 /* ── Form footer note ─────────────────────────────────────────────────────── */
 .hr-form-note { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 0.75rem; }
+
+/* ── Clickable leave row arrow ────────────────────────────────────────────── */
+.hr-row-arrow { font-size: 0.65rem; color: #cbd5e1; }
+.hr-leave-row:hover .hr-row-arrow { color: #4F7EF8; }
+
+/* ── Info alert (cancelled confirmation) ──────────────────────────────────── */
+.hr-alert-info { background: #EEF2FF; color: #1e3a5f; }
+
+/* ── Leave detail page ────────────────────────────────────────────────────── */
+.hr-detail-section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #94a3b8;
+    margin-bottom: 0.75rem;
+}
+
+.hr-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 1rem;
+}
+.hr-detail-label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.hr-detail-value {
+    font-size: 0.88rem;
+    color: #1e293b;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* ── Attachment row ───────────────────────────────────────────────────────── */
+.hr-attachment-row {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e3a5f;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+.hr-attachment-row:last-child { border-bottom: none; }
+.hr-attachment-row:hover { color: #4F7EF8; }
+
+/* ── Activity / chatter messages ──────────────────────────────────────────── */
+.hr-message-row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.hr-message-row:last-child { border-bottom: none; }
+
+.hr-message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #EEF2FF;
+    color: #4F7EF8;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.hr-message-author {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.hr-message-date {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 400;
+}
+.hr-message-body {
+    font-size: 0.82rem;
+    color: #475569;
+    line-height: 1.5;
+}
+.hr-message-body p { margin: 0; }
+.hr-message-body ul { margin: 0.25rem 0 0 1rem; padding: 0; }
+
+/* ── Cancel request button ────────────────────────────────────────────────── */
+.hr-btn-cancel-request {
+    display: block;
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid #FCA5A5;
+    color: #991B1B;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    margin-top: 0.5rem;
+}
+.hr-btn-cancel-request:hover {
+    background: #FEE2E2;
+    border-color: #EF4444;
+}
+
+/* ── Day counter box (sits beside the date inputs) ───────────────────────── */
+.hr-day-counter {
+    background: #EEF2FF;
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+    min-width: 54px;
+}
+.hr-day-counter-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #1e3a5f;
+}
+.hr-day-counter-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #4F7EF8;
+    margin-top: 2px;
+}
+
+/* ── Date note (weekends excluded, holiday names) ─────────────────────────── */
+.hr-date-note {
+    margin-top: 0.45rem;
+    font-size: 0.73rem;
+    color: #64748b;
+}

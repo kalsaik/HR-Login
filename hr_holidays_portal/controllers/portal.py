@@ -1,7 +1,11 @@
 import base64
-from datetime import datetime
+import json
+from datetime import datetime, date, timedelta
+
+from markupsafe import Markup
 
 from odoo import http
+from odoo.exceptions import ValidationError, UserError
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal
 
@@ -12,6 +16,11 @@ def _get_param(key, default):
     """Read an ir.config_parameter value, falling back to *default*."""
     val = request.env['ir.config_parameter'].sudo().get_param(key)
     return val if val is not None else default
+
+
+def _safe_json(data):
+    """Serialise *data* to JSON and mark it safe for QWeb t-out."""
+    return Markup(json.dumps(data))
 
 
 class HrHolidaysPortal(CustomerPortal):
@@ -41,6 +50,8 @@ class HrHolidaysPortal(CustomerPortal):
         employee = env.user.employee_id
 
         if employee:
+            # Refresh employee via sudo so versioned fields (job_title, dept) are readable
+            employee = env['hr.employee'].sudo().browse(employee.id)
             allocations = env['hr.leave.allocation'].sudo().search([
                 ('employee_id', '=', employee.id),
                 ('state', '=', 'validate'),
@@ -112,9 +123,34 @@ class HrHolidaysPortal(CustomerPortal):
                 'is_sick': lt.name == sick_leave_name,
             })
 
-        # Find sick leave type id for JS logic
+        # Sick leave type id for JS cert logic
         sl = request.env['hr.leave.type'].sudo().search(
             [('name', '=', sick_leave_name)], limit=1)
+
+        # Public holidays — past year and next year (allow past dates)
+        today = date.today()
+        ph_records = request.env['resource.calendar.leaves'].sudo().search([
+            ('calendar_id', '=', False),
+            ('date_from', '>=', today - timedelta(days=365)),
+            ('date_from', '<=', today + timedelta(days=365)),
+        ])
+        holiday_dates = {
+            h.date_from.date().strftime('%Y-%m-%d'): h.name or 'Public Holiday'
+            for h in ph_records
+        }
+
+        # Colleagues in the same department for the covering-person dropdown.
+        # department_id lives in hr_version in Odoo 19, so read it via sudo.
+        emp_sudo = request.env['hr.employee'].sudo().browse(employee.id)
+        dept_id = emp_sudo.department_id.id if emp_sudo.department_id else False
+        if dept_id:
+            colleagues = request.env['hr.employee'].sudo().search([
+                ('department_id', '=', dept_id),
+                ('id', '!=', employee.id),
+                ('active', '=', True),
+            ], order='name asc')
+        else:
+            colleagues = request.env['hr.employee'].sudo().browse()
 
         values = self._prepare_portal_layout_values()
         values.update({
@@ -127,6 +163,9 @@ class HrHolidaysPortal(CustomerPortal):
             'form_date_from': date_from or '',
             'form_date_to': date_to or '',
             'form_leave_type_id': int(leave_type_id) if leave_type_id else 0,
+            'colleagues': colleagues,
+            # Markup-wrapped JSON is safe for t-out without HTML-escaping
+            'holiday_dates_json': _safe_json(holiday_dates),
         })
         return request.render('hr_holidays_portal.portal_leave_new', values)
 
@@ -149,10 +188,11 @@ class HrHolidaysPortal(CustomerPortal):
         max_upload_bytes = int(_get_param(
             'hr_holidays_portal.max_upload_bytes', str(5 * 1024 * 1024)))
 
-        leave_type_id = int(post.get('leave_type_id') or 0)
-        date_from_str = (post.get('date_from') or '').strip()
-        date_to_str   = (post.get('date_to')   or '').strip()
-        reason        = (post.get('reason')     or '').strip()
+        leave_type_id    = int(post.get('leave_type_id') or 0)
+        date_from_str    = (post.get('date_from') or '').strip()
+        date_to_str      = (post.get('date_to')   or '').strip()
+        reason           = (post.get('reason')     or '').strip()
+        covering_id      = int(post.get('covering_person_id') or 0)
 
         def redirect_error(msg):
             params = {'error': msg, 'date_from': date_from_str,
@@ -172,7 +212,7 @@ class HrHolidaysPortal(CustomerPortal):
         if date_to < date_from:
             return redirect_error('End date cannot be before the start date.')
 
-        # ── Verify employee has an allocation for this type ──────────────────
+        # ── Verify allocation exists ─────────────────────────────────────────
         alloc = request.env['hr.leave.allocation'].sudo().search([
             ('employee_id', '=', employee.id),
             ('holiday_status_id', '=', leave_type_id),
@@ -184,6 +224,16 @@ class HrHolidaysPortal(CustomerPortal):
 
         leave_type = alloc.holiday_status_id
         calendar_days = (date_to - date_from).days + 1
+
+        # ── Covering person (same-dept validation) ───────────────────────────
+        covering = None
+        if covering_id:
+            cov = request.env['hr.employee'].sudo().browse(covering_id)
+            if cov.exists() and cov.active:
+                # Only accept if same department (or employee has no dept)
+                if (not employee.department_id
+                        or cov.department_id.id == employee.department_id.id):
+                    covering = cov
 
         # ── Medical certificate check ────────────────────────────────────────
         medical_file = request.httprequest.files.get('medical_cert')
@@ -204,7 +254,6 @@ class HrHolidaysPortal(CustomerPortal):
                 return redirect_error(
                     'Invalid file type. Please upload a PDF or image (JPG/PNG).')
         elif medical_file and medical_file.filename:
-            # Optional file attached even though not required
             file_bytes = medical_file.read()
             mime = medical_file.content_type or 'application/octet-stream'
         else:
@@ -223,10 +272,19 @@ class HrHolidaysPortal(CustomerPortal):
                 leave_vals['name'] = reason
 
             leave = request.env['hr.leave'].sudo().create(leave_vals)
-            # Odoo 19: hr.leave is created directly in 'confirm' state
 
-        except Exception as e:
-            return redirect_error(f'Could not submit request: {e}')
+        except (ValidationError, UserError) as e:
+            msg = str(e)
+            if 'overlap' in msg.lower() or 'already booked' in msg.lower():
+                return redirect_error(
+                    'You already have a leave request covering some or all of those dates. '
+                    'Please check your Recent Requests before submitting.'
+                )
+            # Other business-rule errors — strip technical boilerplate, show cleanly
+            clean = msg.split('\n')[0].strip()
+            return redirect_error(clean or 'Your request could not be submitted. Please try again.')
+        except Exception:
+            return redirect_error('Something went wrong while submitting your request. Please try again.')
 
         # ── Attach medical certificate to chatter ────────────────────────────
         if file_bytes:
@@ -245,12 +303,16 @@ class HrHolidaysPortal(CustomerPortal):
                     subtype_xmlid='mail.mt_comment',
                 )
             except Exception:
-                pass  # Attachment failure should not block submission
+                pass
 
         # ── Notify the leave manager ─────────────────────────────────────────
         manager = employee.leave_manager_id
         if manager and manager.partner_id:
             try:
+                covering_line = (
+                    f'<li><strong>Covered by:</strong> {covering.name}</li>'
+                    if covering else ''
+                )
                 leave.sudo().message_post(
                     body=(
                         f'<p>📋 <strong>New leave request</strong> from '
@@ -261,6 +323,7 @@ class HrHolidaysPortal(CustomerPortal):
                         f'<li><strong>To:</strong> {date_to.strftime("%d %b %Y")}</li>'
                         f'<li><strong>Duration:</strong> {leave.number_of_days:.0f} working day(s)</li>'
                         + (f'<li><strong>Reason:</strong> {reason}</li>' if reason else '')
+                        + covering_line
                         + '</ul>'
                     ),
                     partner_ids=[manager.partner_id.id],
@@ -273,6 +336,80 @@ class HrHolidaysPortal(CustomerPortal):
                     user_id=manager.id,
                 )
             except Exception:
-                pass  # Notification failure should not block submission
+                pass
 
         return request.redirect('/my/allocations?success=1')
+
+    # ── /my/leaves/<id>  GET ─────────────────────────────────────────────────
+
+    @http.route('/my/leaves/<int:leave_id>', type='http', auth='user', website=True)
+    def portal_leave_detail(self, leave_id, **kwargs):
+        employee = request.env.user.employee_id
+        if not employee:
+            return request.redirect('/my/allocations')
+
+        leave = request.env['hr.leave'].sudo().browse(leave_id)
+
+        # Security: must exist and belong to this employee
+        if not leave.exists() or leave.employee_id.id != employee.id:
+            return request.redirect('/my/allocations')
+
+        # Attachments on the leave record (medical certs etc.)
+        attachments = request.env['ir.attachment'].sudo().search([
+            ('res_model', '=', 'hr.leave'),
+            ('res_id', '=', leave.id),
+        ])
+
+        # Chatter messages — show comments only, skip empty/system ones
+        messages = request.env['mail.message'].sudo().search([
+            ('res_id', '=', leave.id),
+            ('model', '=', 'hr.leave'),
+            ('message_type', 'in', ['comment', 'email']),
+            ('body', '!=', ''),
+        ], order='date asc')
+
+        values = self._prepare_portal_layout_values()
+        values.update({
+            'leave': leave,
+            'employee': employee,
+            'attachments': attachments,
+            'messages': messages,
+            'page_name': 'leave_detail',
+            'can_cancel': leave.state in ('confirm', 'validate1'),
+        })
+        return request.render('hr_holidays_portal.portal_leave_detail', values)
+
+    # ── /my/leaves/<id>/cancel  POST ─────────────────────────────────────────
+
+    @http.route('/my/leaves/<int:leave_id>/cancel', type='http', auth='user',
+                website=True, methods=['POST'])
+    def portal_leave_cancel(self, leave_id, **kwargs):
+        employee = request.env.user.employee_id
+        if not employee:
+            return request.redirect('/my/allocations')
+
+        leave = request.env['hr.leave'].sudo().browse(leave_id)
+
+        # Security check
+        if not leave.exists() or leave.employee_id.id != employee.id:
+            return request.redirect('/my/allocations')
+
+        if leave.state not in ('confirm', 'validate1'):
+            return request.redirect(f'/my/leaves/{leave_id}')
+
+        try:
+            leave.sudo().action_refuse()
+        except Exception:
+            # Fallback: force state directly if action_refuse fails
+            leave.sudo().write({'state': 'refuse'})
+
+        try:
+            leave.sudo().message_post(
+                body='<p>❌ Leave request <strong>cancelled by employee</strong> via the self-service portal.</p>',
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+            )
+        except Exception:
+            pass
+
+        return request.redirect('/my/allocations?cancelled=1')
