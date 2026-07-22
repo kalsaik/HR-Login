@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_hr_leave_portal,hr.leave portal read,hr_holidays.model_hr_leave,base.group_portal,1,0,0,0
 access_hr_leave_allocation_portal,hr.leave.allocation portal read,hr_holidays.model_hr_leave_allocation,base.group_portal,1,0,0,0
+access_hr_attendance_adjustment_portal,hr.attendance.adjustment portal,hr_holidays_portal.model_hr_attendance_adjustment,base.group_portal,1,0,1,0
+access_hr_attendance_adjustment_user,hr.attendance.adjustment internal,hr_holidays_portal.model_hr_attendance_adjustment,base.group_user,1,1,1,1

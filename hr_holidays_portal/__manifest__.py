@@ -9,6 +9,7 @@
         'security/ir.model.access.csv',
         'security/ir_rules.xml',
         'data/config_parameters.xml',
+        'views/attendance_adjustment_views.xml',
         'views/portal_templates.xml',
     ],
     'assets': {

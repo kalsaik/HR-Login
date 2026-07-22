@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List view -->
+    <record id="view_attendance_adjustment_list" model="ir.ui.view">
+        <field name="name">hr.attendance.adjustment.list</field>
+        <field name="model">hr.attendance.adjustment</field>
+        <field name="arch" type="xml">
+            <list string="Attendance Adjustment Requests"
+                  decoration-warning="state=='submitted'"
+                  decoration-success="state=='approved'"
+                  decoration-danger="state=='rejected'">
+                <field name="employee_id"/>
+                <field name="date"/>
+                <field name="check_in_requested" string="Requested In"/>
+                <field name="check_out_requested" string="Requested Out" optional="show"/>
+                <field name="reason"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state=='submitted'"
+                       decoration-success="state=='approved'"
+                       decoration-danger="state=='rejected'"/>
+                <field name="reviewer_id" optional="hide"/>
+                <button name="action_approve" string="Approve" type="object"
+                        class="btn-primary btn-sm" invisible="state != 'submitted'"/>
+                <button name="action_reject" string="Reject" type="object"
+                        class="btn-sm" invisible="state != 'submitted'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view -->
+    <record id="view_attendance_adjustment_form" model="ir.ui.view">
+        <field name="name">hr.attendance.adjustment.form</field>
+        <field name="model">hr.attendance.adjustment</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Adjustment Request">
+                <header>
+                    <button name="action_approve" string="Approve" type="object"
+                            class="btn-primary" invisible="state != 'submitted'"/>
+                    <button name="action_reject" string="Reject" type="object"
+                            invisible="state != 'submitted'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="submitted,approved,rejected"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Request">
+                            <field name="employee_id" readonly="state != 'submitted'"/>
+                            <field name="date" readonly="state != 'submitted'"/>
+                        </group>
+                        <group string="Requested Times">
+                            <field name="check_in_requested" readonly="state != 'submitted'"/>
+                            <field name="check_out_requested" readonly="state != 'submitted'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason" widget="text" readonly="state != 'submitted'"
+                               colspan="2"/>
+                    </group>
+                    <group invisible="state == 'submitted'" string="Review">
+                        <field name="reviewer_id" readonly="1"/>
+                        <field name="review_note" widget="text"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Window action -->
+    <record id="action_attendance_adjustment" model="ir.actions.act_window">
+        <field name="name">Attendance Adjustment Requests</field>
+        <field name="res_model">hr.attendance.adjustment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menu under Time Off > Management -->
+    <menuitem id="menu_attendance_adjustment"
+              name="Attendance Adjustments"
+              parent="hr_holidays.menu_hr_holidays_management"
+              action="action_attendance_adjustment"
+              sequence="30"/>
+
+</odoo>

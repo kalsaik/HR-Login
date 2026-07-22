@@ -22,4 +22,11 @@
         <field name="key">hr_holidays_portal.max_upload_bytes</field>
         <field name="value">5242880</field>
     </record>
+
+    <!-- Allow employees to submit attendance time adjustment requests via portal
+         Set to '0' to disable the feature entirely. -->
+    <record id="param_allow_attendance_adjustment" model="ir.config_parameter">
+        <field name="key">hr_holidays_portal.allow_attendance_adjustment</field>
+        <field name="value">1</field>
+    </record>
 </odoo>

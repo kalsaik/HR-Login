@@ -466,3 +466,222 @@
     font-size: 0.73rem;
     color: #64748b;
 }
+
+/* ── Portal home: teal variant for Attendance icon ───────────────────────── */
+.hr-app-icon-bg--teal { background: #CCFBF1; }
+.hr-app-icon-bg--teal i { color: #0D9488; }
+
+/* ── Attendance: this-month summary card ──────────────────────────────────── */
+.hr-attend-summary { padding-top: 1rem; padding-bottom: 1rem; }
+
+.hr-attend-summary-month {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #94a3b8;
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.hr-attend-stat-num {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+}
+
+.hr-attend-stat-lbl {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.hr-attend-stat-divider {
+    width: 1px;
+    height: 2.5rem;
+    background: #e2e8f0;
+    flex-shrink: 0;
+}
+
+/* ── Attendance: month header inside records card ─────────────────────────── */
+.hr-attend-month-hd {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    margin: 1rem 0 0.4rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+}
+/* Remove top border for the very first month header */
+.hr-attend-month-hd:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+/* ── Attendance: individual record row ────────────────────────────────────── */
+.hr-attend-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.hr-attend-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.hr-attend-date {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.hr-attend-weekday {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #94a3b8;
+    margin-right: 0.3rem;
+}
+
+.hr-attend-times {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.hr-attend-open {
+    font-size: 0.72rem;
+    color: #d97706;
+    font-weight: 700;
+}
+
+.hr-attend-hours {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+/* ── Late / OT badges ─────────────────────────────────────────────────────── */
+.hr-badge-late { background: #FEF3C7; color: #92400E; }
+.hr-badge-ot   { background: #EDE9FE; color: #5B21B6; }
+
+/* ── Attendance: day card ─────────────────────────────────────────────────── */
+.hr-attend-day-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.hr-attend-day-hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.35rem;
+}
+
+.hr-attend-day-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.hr-attend-day-total {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+/* ── Holiday name label ───────────────────────────────────────────────────── */
+.hr-attend-holiday-name {
+    font-size: 0.72rem;
+    color: #7c3aed;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+/* ── Sessions list within a day card ─────────────────────────────────────── */
+.hr-attend-sessions { margin-top: 0.25rem; }
+
+.hr-attend-session {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-top: 1px solid #f1f5f9;
+}
+.hr-attend-session:first-child { border-top: none; }
+
+.hr-attend-session-times {
+    font-size: 0.78rem;
+    color: #475569;
+}
+
+.hr-attend-session-hrs {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+/* ── Missing punch / adjust link ──────────────────────────────────────────── */
+.hr-attend-adjust-link {
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    color: #d97706;
+    font-weight: 500;
+    padding-top: 0.35rem;
+    border-top: 1px solid #f1f5f9;
+}
+.hr-attend-adjust-link a {
+    color: #1e3a5f;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+/* ── Request adjustment button (outlined secondary style) ─────────────────── */
+.hr-btn-adjust {
+    display: block;
+    border: 1.5px solid #1e3a5f;
+    color: #1e3a5f !important;
+    background: transparent;
+    text-align: center;
+    text-decoration: none !important;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    transition: background 0.15s;
+    cursor: pointer;
+    width: 100%;
+}
+.hr-btn-adjust:hover { background: #f0f4ff; }
+
+/* ── Adjustment request rows ──────────────────────────────────────────────── */
+.hr-adjust-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.hr-adjust-row:last-child  { border-bottom: none; padding-bottom: 0; }
+.hr-adjust-row:first-child { padding-top: 0; }
+
+.hr-adjust-date {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.hr-adjust-times {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}

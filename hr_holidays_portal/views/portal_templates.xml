@@ -19,6 +19,16 @@
                             </div>
                         </a>
                     </div>
+                    <div class="col-4 col-sm-3 col-md-2">
+                        <a href="/my/attendance" class="text-decoration-none d-block h-100">
+                            <div class="hr-app-card">
+                                <div class="hr-app-icon-bg hr-app-icon-bg--teal">
+                                    <i class="fa fa-clock-o"/>
+                                </div>
+                                <span class="hr-app-label">Attendance</span>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </xpath>
@@ -668,6 +678,337 @@
                         </a>
                     </t>
                 </t>
+
+            </div>
+        </t>
+    </template>
+
+
+    <!-- ===== /my/attendance — Attendance Log (enhanced) ===== -->
+    <template id="portal_my_attendance" name="My Attendance Log">
+        <t t-call="portal.portal_layout">
+            <div class="hr-page">
+
+                <!-- Banner -->
+                <div class="hr-banner">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/my" class="hr-banner-back">
+                                <i class="fa fa-arrow-left me-1"/>Back to Home
+                            </a>
+                            <h3 class="mb-0">Attendance Log</h3>
+                        </div>
+                        <div class="hr-banner-avatar">
+                            <t t-esc="employee.name[0:1].upper()"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module not installed -->
+                <t t-if="not has_attendance">
+                    <div class="hr-card">
+                        <div class="hr-empty">
+                            <i class="fa fa-clock-o"/>
+                            <p class="hr-empty-title">Attendance tracking not available</p>
+                            <p class="hr-empty-sub">
+                                The attendance module is not installed on this system.
+                                Please contact your administrator.
+                            </p>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-if="has_attendance">
+
+                    <!-- Adjustment submitted success banner -->
+                    <t t-if="adj_success">
+                        <div class="hr-alert hr-alert-success">
+                            <i class="fa fa-check-circle"/>
+                            Your adjustment request has been submitted and is pending review.
+                        </div>
+                    </t>
+
+                    <!-- This-month summary -->
+                    <div class="hr-card hr-attend-summary">
+                        <div class="hr-attend-summary-month"><t t-esc="month_label"/></div>
+                        <div class="d-flex justify-content-around align-items-center">
+                            <div class="text-center">
+                                <div class="hr-attend-stat-num"><t t-esc="month_days"/></div>
+                                <div class="hr-attend-stat-lbl">Days</div>
+                            </div>
+                            <div class="hr-attend-stat-divider"/>
+                            <div class="text-center">
+                                <div class="hr-attend-stat-num">
+                                    <t t-esc="'%.1f' % month_hours"/>
+                                </div>
+                                <div class="hr-attend-stat-lbl">Hours</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Request adjustment button -->
+                    <t t-if="allow_adjustment">
+                        <a href="/my/attendance/adjust/new" class="hr-btn-adjust">
+                            <i class="fa fa-pencil me-1"/>Request Time Adjustment
+                        </a>
+                    </t>
+
+                    <!-- Empty state -->
+                    <t t-if="not days_display">
+                        <div class="hr-card">
+                            <div class="hr-empty">
+                                <i class="fa fa-clock-o"/>
+                                <p class="hr-empty-title">No attendance records</p>
+                                <p class="hr-empty-sub">
+                                    Your clock-in/out records will appear here.
+                                </p>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Day cards -->
+                    <t t-if="days_display">
+                        <t t-set="current_month" t-value="''"/>
+                        <t t-foreach="days_display" t-as="day">
+
+                            <!-- Month group header -->
+                            <t t-if="day['month_key'] != current_month">
+                                <p class="hr-attend-month-hd">
+                                    <t t-esc="day['month_key']"/>
+                                </p>
+                                <t t-set="current_month" t-value="day['month_key']"/>
+                            </t>
+
+                            <div class="hr-attend-day-card">
+
+                                <!-- Day header: date + badges + total -->
+                                <div class="hr-attend-day-hd">
+                                    <div class="hr-attend-day-title">
+                                        <span class="hr-attend-weekday">
+                                            <t t-esc="day['weekday_str']"/>
+                                        </span>
+                                        <t t-esc="day['date_str']"/>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <t t-if="day['is_late']">
+                                            <span class="hr-badge hr-badge-late">
+                                                Late <t t-esc="day['late_str']"/>
+                                            </span>
+                                        </t>
+                                        <t t-if="day['has_ot']">
+                                            <span class="hr-badge hr-badge-ot">
+                                                OT <t t-esc="day['ot_str']"/>
+                                            </span>
+                                        </t>
+                                        <t t-if="day['is_today']">
+                                            <span class="hr-badge hr-badge-pending">Active</span>
+                                        </t>
+                                        <t t-elif="day['sessions']">
+                                            <span class="hr-attend-day-total">
+                                                <t t-esc="'%.1f' % day['total_hours']"/>h
+                                            </span>
+                                        </t>
+                                    </div>
+                                </div>
+
+                                <!-- Public holiday label -->
+                                <t t-if="day['is_holiday']">
+                                    <div class="hr-attend-holiday-name">
+                                        <i class="fa fa-flag me-1"/>
+                                        <t t-esc="day['holiday_name']"/>
+                                    </div>
+                                </t>
+
+                                <!-- Sessions (up to 2: morning / afternoon) -->
+                                <div class="hr-attend-sessions">
+                                    <t t-foreach="day['sessions']" t-as="sess">
+                                        <div class="hr-attend-session">
+                                            <div class="hr-attend-session-times">
+                                                <i class="fa fa-sign-in me-1"/>
+                                                <t t-esc="sess['check_in_str']"/>
+                                                <span class="mx-1">—</span>
+                                                <t t-if="sess['check_out_str']">
+                                                    <i class="fa fa-sign-out me-1"/>
+                                                    <t t-esc="sess['check_out_str']"/>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="hr-attend-open">Still in</span>
+                                                </t>
+                                            </div>
+                                            <t t-if="not sess['is_open']">
+                                                <span class="hr-attend-session-hrs">
+                                                    <t t-esc="'%.1f' % sess['worked_hours']"/>h
+                                                </span>
+                                            </t>
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <!-- Missing punch warning -->
+                                <t t-if="day['missing_punch'] and allow_adjustment">
+                                    <div class="hr-attend-adjust-link">
+                                        <i class="fa fa-exclamation-triangle me-1"/>
+                                        Missing punch-out —
+                                        <a t-attf-href="/my/attendance/adjust/new?date=#{day['date_iso']}">
+                                            request adjustment
+                                        </a>
+                                    </div>
+                                </t>
+                                <t t-elif="day['missing_punch']">
+                                    <div class="hr-attend-adjust-link" style="color:#dc2626;">
+                                        <i class="fa fa-exclamation-triangle me-1"/>
+                                        Missing punch-out
+                                    </div>
+                                </t>
+
+                            </div>
+                        </t>
+                        <p class="hr-form-note mt-1">Showing last 90 records</p>
+                    </t>
+
+                    <!-- Recent adjustment requests -->
+                    <t t-if="allow_adjustment and adjustment_requests">
+                        <div class="hr-section-hd mt-3">
+                            <span class="hr-section-hd-title">Time Adjustment Requests</span>
+                        </div>
+                        <div class="hr-card">
+                            <t t-foreach="adjustment_requests" t-as="adj">
+                                <div class="hr-adjust-row">
+                                    <div class="flex-grow-1">
+                                        <div class="hr-adjust-date">
+                                            <t t-esc="adj['date_str']"/>
+                                        </div>
+                                        <div class="hr-adjust-times">
+                                            <t t-if="adj['check_in_str']">
+                                                In: <t t-esc="adj['check_in_str']"/>
+                                            </t>
+                                            <t t-if="adj['check_in_str'] and adj['check_out_str']">
+                                                <span class="mx-1">·</span>
+                                            </t>
+                                            <t t-if="adj['check_out_str']">
+                                                Out: <t t-esc="adj['check_out_str']"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <t t-if="adj['state'] == 'approved'">
+                                            <span class="hr-badge hr-badge-approved">Approved</span>
+                                        </t>
+                                        <t t-elif="adj['state'] == 'rejected'">
+                                            <span class="hr-badge hr-badge-refused">Rejected</span>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="hr-badge hr-badge-pending">Pending</span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                </t>
+
+            </div>
+        </t>
+    </template>
+
+
+    <!-- ===== /my/attendance/adjust/new — Time Adjustment Form ===== -->
+    <template id="portal_attend_adjust_new" name="Request Time Adjustment">
+        <t t-call="portal.portal_layout">
+            <div class="hr-page">
+
+                <!-- Banner -->
+                <div class="hr-banner">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/my/attendance" class="hr-banner-back">
+                                <i class="fa fa-arrow-left me-1"/>Back to Attendance
+                            </a>
+                            <h3 class="mb-0">Request Time Adjustment</h3>
+                        </div>
+                        <t t-if="employee">
+                            <div class="hr-banner-avatar">
+                                <t t-esc="employee.name[0:1].upper()"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Error banner -->
+                <t t-if="error">
+                    <div class="hr-alert hr-alert-error">
+                        <i class="fa fa-exclamation-circle"/>
+                        <t t-esc="error"/>
+                    </div>
+                </t>
+
+                <div class="hr-card">
+                    <p class="hr-form-hint mb-3">
+                        <i class="fa fa-info-circle me-1"/>
+                        Use this form to report a missed punch. Provide the correct time(s)
+                        and a brief explanation. HR will review and update your attendance record.
+                    </p>
+
+                    <form method="post" action="/my/attendance/adjust/new">
+                        <input type="hidden" name="csrf_token"
+                               t-att-value="request.csrf_token()"/>
+
+                        <!-- Date -->
+                        <div class="hr-form-group">
+                            <label class="hr-form-label" for="adj_date">
+                                Date <span class="required">*</span>
+                            </label>
+                            <input type="date" name="date" id="adj_date"
+                                   class="hr-form-control"
+                                   t-att-value="form_date"
+                                   required="required"/>
+                        </div>
+
+                        <!-- Check-in time -->
+                        <div class="hr-form-group">
+                            <label class="hr-form-label" for="time_in">
+                                Correct Check-in Time
+                                <span class="optional">(leave blank if not applicable)</span>
+                            </label>
+                            <input type="time" name="time_in" id="time_in"
+                                   class="hr-form-control"/>
+                        </div>
+
+                        <!-- Check-out time -->
+                        <div class="hr-form-group">
+                            <label class="hr-form-label" for="time_out">
+                                Correct Check-out Time
+                                <span class="optional">(leave blank if not applicable)</span>
+                            </label>
+                            <input type="time" name="time_out" id="time_out"
+                                   class="hr-form-control"/>
+                        </div>
+
+                        <!-- Reason -->
+                        <div class="hr-form-group">
+                            <label class="hr-form-label" for="adj_reason">
+                                Reason <span class="required">*</span>
+                            </label>
+                            <textarea name="reason" id="adj_reason" rows="3"
+                                      class="hr-form-control"
+                                      placeholder="Explain why the adjustment is needed…"
+                                      required="required"></textarea>
+                        </div>
+
+                        <button type="submit" class="hr-btn-request mb-0">
+                            Submit Request
+                        </button>
+                    </form>
+
+                    <a href="/my/attendance" class="hr-btn-cancel">Cancel</a>
+                </div>
+
+                <p class="hr-form-note">
+                    <i class="fa fa-info-circle me-1"/>
+                    Your request will be reviewed by HR. You can track its status
+                    on the Attendance Log page.
+                </p>
 
             </div>
         </t>
